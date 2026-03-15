@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>27班点名器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+
+        body {
+            /* 渐变背景 */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            /* 防止背景重复 */
+            background-attachment: fixed;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            /* 多层次阴影 */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 
+                        0 5px 15px rgba(0, 0, 0, 0.07);
+            padding: 60px 40px;
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+            /* 毛玻璃效果 */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 50px;
+            font-size: 36px;
+            font-weight: 700;
+            /* 文字渐变 */
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 2px;
+        }
+
+        /* 名字显示区域 */
+        .name-display {
+            font-size: 80px;
+            font-weight: 800;
+            color: #2d3748;
+            height: 150px;
+            line-height: 150px;
+            margin: 60px 0;
+            border-radius: 15px;
+            /* 渐变背景+阴影 */
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05),
+                        0 4px 20px rgba(0, 0, 0, 0.08);
+            /* 文字过渡动画 */
+            transition: all 0.3s ease;
+            /* 防止文字溢出 */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding: 0 20px;
+        }
+
+        /* 名字滚动动画 */
+        @keyframes roll {
+            0% { opacity: 0.8; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        .rolling {
+            animation: roll 0.1s infinite;
+            color: #667eea !important;
+        }
+
+        /* 按钮样式 */
+        .btn-group {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 18px 45px;
+            font-size: 22px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            /* 按钮阴影 */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 按钮点击波纹效果 */
+        button::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        button:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        #startBtn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        #stopBtn {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+        }
+
+        #resetBtn {
+            background: linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        button:disabled {
+            background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            opacity: 0.8;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 500px) {
+            .container {
+                padding: 40px 20px;
+            }
+
+            h1 {
+                font-size: 28px;
+                margin-bottom: 30px;
+            }
+
+            .name-display {
+                font-size: 50px;
+                height: 100px;
+                line-height: 100px;
+                margin: 40px 0;
+            }
+
+            button {
+                padding: 15px 35px;
+                font-size: 18px;
+            }
+
+            .btn-group {
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>27班点名器</h1>
+        
+        <!-- 名字显示区域 -->
+        <div class="name-display" id="nameDisplay">点击开始</div>
+
+        <!-- 功能按钮 -->
+        <div class="btn-group">
+            <button id="startBtn">开始点名</button>
+            <button id="stopBtn" disabled>停止点名</button>
+            <button id="resetBtn">重置</button>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const nameDisplay = document.getElementById('nameDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // 全局变量
+        // 这里直接写死名字列表，你可以根据需要修改
+        const nameList = [
+           "傅熙",
+           "韦筱攸",
+           "倪晨俊",
+           "孔铭涵",
+           "高化昱",
+           "孟书瑶",
+           "孔家谦",
+           "蔡雨晴",
+           "孟凯璇",
+           "周佳艺",
+           "夏紫鑫",
+           "章欣然",
+           "柴梓淼",
+           "霍一帆",
+           "丰羽馨",
+           "韦雨歌",
+           "金德文",
+           "辛正阳",
+           "娄耀威",
+           "毕元浩",
+           "顾家铭",
+           "侯佳颖",
+           "屈佳乐",
+           "张佳艺",
+           "吕可颖",
+           "蒋安泽",
+           "孔梓悦",
+           "魏椿洋",
+           "孔刘虎",
+           "王紫萱",
+           "李木子",
+           "魏诗曼",
+           "高天歌",
+           "王文静",
+           "吴子萱",
+           "孔诗琪",
+           "刘文依",
+           "刘紫依",
+           "陈思哲",
+           "孔超凡",
+           "孙可欣",
+           "孔维雪",
+           "孔语暄",
+           "颜浩晨",
+           "施皓骞",
+           "徐淑瑶",
+           "孙若彤",
+           "刘明赫",
+           "孔儒涵",
+           "武梦欣"
+
+        ]; 
+        let rollInterval = null; // 存储定时器
+        let isRolling = false; // 是否正在滚动
+
+        // 开始点名按钮事件
+        startBtn.addEventListener('click', function() {
+            // 设置按钮状态
+            isRolling = true;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            // 添加滚动动画类
+            nameDisplay.classList.add('rolling');
+
+            // 开始滚动名字，每隔50毫秒切换一次
+            rollInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * nameList.length);
+                nameDisplay.textContent = nameList[randomIndex];
+            }, 50);
+        });
+
+        // 停止点名按钮事件
+        stopBtn.addEventListener('click', function() {
+            // 清除定时器
+            clearInterval(rollInterval);
+            isRolling = false;
+            // 移除滚动动画类
+            nameDisplay.classList.remove('rolling');
+
+            // 恢复按钮状态
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        });
+
+        // 重置按钮事件
+        resetBtn.addEventListener('click', resetRoll);
+
+        // 重置函数
+        function resetRoll() {
+            // 停止滚动
+            if (isRolling) {
+                clearInterval(rollInterval);
+                isRolling = false;
+                nameDisplay.classList.remove('rolling');
+            }
+
+            // 恢复按钮状态和显示内容
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            nameDisplay.textContent = '点击开始';
+        }
+    </script>
+</body>
+</html>
